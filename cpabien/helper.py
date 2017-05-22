@@ -85,6 +85,7 @@ class __DlPageParser(HTMLParser):
                 print 'end tag:%s - Changing recording to %g' % (tag, self.recording)
 
 def __process_size(s):
+    """Take a string with unit, return a float in Mo."""
     [size, unit] = s.split(' ')
     size = float(size)
     if unit == 'Go':
@@ -92,19 +93,20 @@ def __process_size(s):
     return size
 
 def __filter_data(row):
+    """Filter a search result based on size and seed."""
     size, seed = row['size'], row['seed']
     return size > 500 and size < 2000 and seed > 0
 
 def __postprocess_results(resp):
     parser = __SearchResultParser()
     parser.feed(resp.text)
-    rawData = parser.rows
+    raw_data = parser.rows
 
     data = map(
         lambda x: {k: e for k, e in
             zip(['raw_url', 'title', 'size', 'seed', 'leech'],
             map(lambda s: unicodedata.normalize('NFD', s).encode('ascii', 'ignore'), x))},
-        rawData
+        raw_data
     )
 
     for r in data:
