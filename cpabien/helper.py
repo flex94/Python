@@ -5,6 +5,8 @@
 import requests
 import unicodedata
 from HTMLParser import HTMLParser
+from shutil import copyfileobj
+from ..utils.strings import clean_str
 
 class __SearchResultParser(HTMLParser):
     def __init__(self):
@@ -82,53 +84,59 @@ class __DlPageParser(HTMLParser):
             if self.debug:
                 print 'end tag:%s - Changing recording to %g' % (tag, self.recording)
 
-
-def cleanInputString(s):
-    s = unicode(s, 'utf-8')
-    s = unicodedata.normalize('NFD', s).encode('ascii', 'ignore')
-    return s
-
-def processSize(s):
+def __process_size(s):
     [size, unit] = s.split(' ')
     size = float(size)
     if unit == 'Go':
         size *= 1000
     return size
 
-def filterData(row):
+def __filter_data(row):
     size, seed = row['size'], row['seed']
     return size > 500 and size < 2000 and seed > 0
 
-def processAndFilterSearchResult(resp):
+def __postprocess_results(resp):
     parser = __SearchResultParser()
     parser.feed(resp.text)
     rawData = parser.rows
 
     data = map(
         lambda x: {k: e for k, e in
-            zip(['rawUrl', 'title', 'size', 'seed', 'leech'],
+            zip(['raw_url', 'title', 'size', 'seed', 'leech'],
             map(lambda s: unicodedata.normalize('NFD', s).encode('ascii', 'ignore'), x))},
         rawData
     )
 
     for r in data:
-        r['size'] = processSize(r['size'])
+        r['size'] = __process_size(r['size'])
         r['seed'] = int(r['seed'])
+        r['dl_url'] = __dl_url(r['raw_url'])
 
-    data = filter(filterData, data)
+    data = filter(__filter_data, data)
     return data
 
-def getDlUrl(url):
+def __dl_url(url):
     resp = requests.get(url)
     parser = __DlPageParser()
     parser.feed(resp.text)
     return 'http://www.cpabien.xyz' + parser.dl_url
 
-def downloadTorrentForInput(inputString):
-    targetUrl = 'http://cpabien.xyz/search.php'
+def search_torrents(input_str):
+    """Search torrents, filter and enrich results."""
+    target_url = 'http://cpabien.xyz/search.php'
 
-    searchString = cleanInputString(inputString)
-    searchRequest = requests.post(targetUrl, data={'t': searchString})
-    results = processAndFilterSearchResult(searchRequest)
+    search_str = clean_str(input_str)
+    search_req = requests.post(target_url, data={'t': search_str})
+    results = __postprocess_results(search_req)
 
     return results
+
+def dl_file(url, name):
+    """Download torrent file from url."""
+    req = requests.get(url, stream=True, headers={'User-Agent': 'Mozilla/5.0'})
+    if req.status_code == 200:
+        with open("%s.torrent" % name, 'wb') as f:
+            req.raw.decode_content = True
+            copyfileobj(req.raw, f)
+        return True
+    return False

@@ -1,44 +1,41 @@
 """Scrap cpabien."""
 
 import sys
-import requests
-import shutil
-from .helper import downloadTorrentForInput, getDlUrl, cleanInputString
+from .helper import search_torrents, dl_file
 from ..utils.yesno import query_oui_non
+from ..utils.strings import clean_str
 
 
 while True:
     sys.stdout.write("\nSaisir le nom d'un film et appuyer sur Enter.\n " +
     "(Appuyer directement sur Enter pour quitter)\n")
-    inputString = raw_input().lower()
+    input_str = raw_input().lower()
 
-    if not(inputString):
+    if not(input_str):
         break
 
-    results = downloadTorrentForInput(inputString)
-    nbResults = len(results)
-    hintStr = '\nVerifier que le titre est correctement orthographie. ' + \
+    results = search_torrents(input_str)
+    nb_results = len(results)
+
+    hint_str = '\nVerifier que le titre est correctement orthographie. ' + \
                 'Sinon, le film n\'est peut etre pas disponible.'
-    if not(nbResults):
-        print 'Pas de resultat pour "%s". ' % inputString + hintStr
+
+    if not(nb_results):
+        print 'Pas de resultat pour "%s". ' % input_str + hint_str
+
     else:
-        print '%g resultats trouves\n' % nbResults
+        print '%g resultats trouves\n' % nb_results
+
         for resu in results:
-            dlTitle = resu['title']
-            ans = query_oui_non('%s - Est-ce le bon film?' % dlTitle)
+            dl_title = resu['title']
+            ans = query_oui_non('%s - Est-ce le bon film?' % dl_title)
 
             if ans:
-                dlUrl = getDlUrl(resu['rawUrl'])
-
-                req = requests.get(dlUrl, stream=True, headers={'User-Agent': 'Mozilla/5.0'})
-                if req.status_code == 200:
-                    with open("%s.torrent" % cleanInputString(inputString), 'wb') as f:
-                        req.raw.decode_content = True
-                        shutil.copyfileobj(req.raw, f)
-
-                    print 'Telechargement de "%s" lance!' % dlTitle
-                    break
+                if dl_file(resu['dl_url'], clean_str(input_str)):
+                    print 'Telechargement de "%s" lance!' % dl_title
                 else:
                     print 'Erreur! Le fichier n\'a pas pu etre telecharge.'
+                break
+
         else:
-            print '\nFin des resultats pour "%s"! ' % inputString + hintStr
+            print '\nFin des resultats pour "%s"! ' % input_str + hint_str
