@@ -1,17 +1,23 @@
 """Scrap cpabien."""
 
 import sys
-from .helper import search_torrents, dl_file
+from .helper import search_torrents, get_dl_url
 from ..utils.yesno import query_oui_non
 from ..utils.strings import clean_str
+from ..utils.web import dl_file
 
 
 # One iteration = one search
 while True:
 
     # Ask user for input
-    sys.stdout.write("\nSaisir le nom d'un film et appuyer sur Enter.\n " +
-    "(Appuyer directement sur Enter pour quitter)\n")
+    sys.stdout.write(
+        "\n"
+        "Saisir le nom d'un film et appuyer sur Enter.\n"
+        "(Ou appuyer directement sur Enter pour quitter)\n"
+        "> "
+    )
+
     input_str = raw_input().lower()
 
     # If blank, exit the program
@@ -22,8 +28,10 @@ while True:
     results = search_torrents(input_str)
     nb_results = len(results)
 
-    hint_str = '\nVerifier que le titre est correctement orthographie. ' + \
-                'Sinon, le film n\'est peut etre pas disponible.'
+    hint_str = (
+        "\nVerifier que le titre est correctement orthographie."
+        "\nSinon, le film n'est peut etre pas disponible."
+    )
 
     # No results
     if not(nb_results):
@@ -31,7 +39,7 @@ while True:
 
     # Results
     else:
-        print '%g resultats trouves\n' % nb_results
+        print '\n*** %g resultats trouves ***' % nb_results
 
         # Loop through the results, ask to pick one
         for resu in results:
@@ -40,8 +48,11 @@ while True:
 
             # Download the file
             if ans:
-                if dl_file(resu['dl_url'], clean_str(input_str)):
-                    print 'Telechargement de "%s" lance!' % dl_title
+                filename = clean_str(input_str) + '.torrent'
+                file_url = get_dl_url(resu['item_url'])
+
+                if dl_file(file_url, filename):
+                    print '\n>>> Telechargement de "%s" lance! <<<' % dl_title
                 else:
                     print 'Erreur! Le fichier n\'a pas pu etre telecharge.'
                 break
