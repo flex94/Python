@@ -35,7 +35,7 @@ while True:
 
     # No results
     if not(nb_results):
-        print 'Pas de resultat pour "%s". ' % input_str + hint_str
+        print '\nPas de resultat pour "%s". ' % input_str + hint_str
 
     # Results
     else:
