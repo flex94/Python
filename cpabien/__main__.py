@@ -43,7 +43,7 @@ while True:
 
         # Loop through the results, ask to pick one
         for resu in results:
-            dl_title = resu['title']
+            dl_title = clean_str(resu['title'])
             ans = query_oui_non('%s - Est-ce le bon film?' % dl_title)
 
             # Download the file

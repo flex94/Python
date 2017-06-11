@@ -21,6 +21,13 @@ def __postprocess_results(raw_data):
         resu['seed'] = int(row[2][0].text)
         results.append(resu)
 
+    results = filter(__filter_data, results)
+
+    for row in results:
+        row['score'] = __get_ranking(row)
+
+    results.sort(key=lambda r: r['score'], reverse=True)
+
     return results
 
 def __process_size(s):
@@ -35,6 +42,13 @@ def __filter_data(row):
     """Filter a search result based on size and seed."""
     size, seed = row['size'], row['seed']
     return size > 500 and size < 2000 and seed > 0
+
+def __get_ranking(row):
+    """Ranking score based on size and seed."""
+    score = row['seed'] / row['size']
+    if row['size'] < 1000:
+        score *= 1.5    # bonus for smaller-size files
+    return score
 
 def search_torrents(input_str):
     """Search torrents, filter and enrich results.
