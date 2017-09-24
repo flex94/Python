@@ -55,7 +55,7 @@ def search_torrents(input_str):
 
     Returns a list of objects ready to be displayed.
     """
-    search_url = 'http://cpabien.xyz/search.php'
+    search_url = 'http://cpabien.cc/search.php'
 
     resp = open_url(search_url, {'t': clean_str(input_str)})
     rows = __get_result_rows(resp)
@@ -67,4 +67,4 @@ def get_dl_url(item_url):
     """Parse the item page url to return the file url."""
     resp = open_url(item_url)
     suffix = parse_with_filter(resp, 'a', 'id', 'telecharger')[0].get('href')
-    return 'http://www.cpabien.xyz' + suffix
+    return 'http://www.cpabien.cc' + suffix
