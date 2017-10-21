@@ -66,5 +66,5 @@ def search_torrents(input_str):
 def get_dl_url(item_url):
     """Parse the item page url to return the file url."""
     resp = open_url(item_url)
-    suffix = parse_with_filter(resp, 'a', 'id', 'telecharger')[0].get('href')
+    suffix = parse_with_filter(resp, 'div', 'id', 'telecharger')[0][0].get('href')
     return 'http://www.cpabien.la' + suffix
