@@ -1,0 +1,12 @@
+inputs
+    stocks
+    wgts
+    incr val
+    start date
+    end date
+
+outputs
+    monthly transactions
+    monthly rtns
+
+
